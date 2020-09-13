@@ -1,0 +1,24 @@
+Repository Link:
+Demonstration Video Link: https://drive.google.com/file/d/1hoAEGj17emMafOqPGvY3FfOlvkIyrQFF/view?usp=sharing
+
+
+How to play the game:
+
+WASD movement, with mouse one (left click) to interact. Find the key to open the first door and find the switch to remotely open the next door
+
+
+What works: 
+- Start screen, Pause screen and End screen
+- Display different item, player health and messages on screen (debug)
+- Trace function works and displays information on screen (debug)
+- Automatically detects when health < 0 and calls the player death event
+- Player health drops at a constant rate, incorporates game states
+- Simple lock and key
+- Remote Unlock
+- Health pickup
+- Interactable objects use an appropraite interface
+
+What doesn't work:
+End screen sometimes popping in after player win
+End screen retry button leading to a URL error when trying to reload level
+(technically) displayinformation (since I'm using debug)
