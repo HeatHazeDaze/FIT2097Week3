@@ -47,4 +47,9 @@ public:
 	UFUNCTION()
 		void RemoteOpen();
 
+	//Dynamic Material setup
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* Material;
+
+	UMaterialInstanceDynamic* matInstance;
 };

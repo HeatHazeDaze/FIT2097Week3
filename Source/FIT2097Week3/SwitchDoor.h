@@ -42,4 +42,10 @@ public:
 	//Event Dispatcher to call on the remote open function in listeners.
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 		FRemoteOpenEvent RemoteOpen;
+
+	//Dynamic Material setup
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* Material;
+
+	UMaterialInstanceDynamic* matInstance;
 };

@@ -3,7 +3,9 @@
 #include "FIT2097Week3Character.h"
 
 #include "EndNode.h"
+#include "EnemyCharacter.h"
 #include "FIT2097Week3Projectile.h"
+#include "FusePickup.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -25,6 +27,12 @@ AFIT2097Week3Character::AFIT2097Week3Character()
 {
 	//Initializes Player Health at 50
 	PlayerHealth = 50;
+
+	//Initializes hasFuse to false
+	hasFuse = false;
+
+	//Initialize isImmune to false
+	isImmune = false;
 	
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
 	TriggerCapsule->InitCapsuleSize(55.0f, 96.0f);
@@ -338,8 +346,24 @@ void AFIT2097Week3Character::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 			pickup->HealthPickupHeal.AddDynamic(this, &AFIT2097Week3Character::HealPlayer);
 		}
 
+		//If OtherActor is a Fuse Pickup, binds the GivePlayerFuse function to the give player fuse event dispatch
+		AFusePickup* fuse = Cast<AFusePickup>(OtherActor);
+		if (fuse)
+		{
+			fuse->GiveFuse.AddDynamic(this, &AFIT2097Week3Character::GivePlayerFuse);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Player now has fuse"));
+		}
+
+		//If OtherActor is an enemy, binds the take damage function to the give player fuse event dispatch
+		AEnemyCharacter* enemy = Cast<AEnemyCharacter>(OtherActor);
+		if (enemy)
+		{
+			enemy->DamageEvent.AddDynamic(this, &AFIT2097Week3Character::TakeDamage);
+		}
+		
 		//Calls execute interact from any objects implementing the interactable interface
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
+		
 		// Implements interface
 		if (OtherActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 		{
@@ -353,6 +377,8 @@ void AFIT2097Week3Character::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 		{
 			PlayerWin.Broadcast();
 		}
+
+
 	}
 
 
@@ -516,19 +542,49 @@ void AFIT2097Week3Character::HealPlayer(int health)
 	}
 }
 
+//Modifies hasFuse bool to true
+void AFIT2097Week3Character::GivePlayerFuse()
+{
+	hasFuse = !hasFuse;
+}
+
 //Decreases the player's health, is called from gamemode every two seconds.
 //Includes check for if the player is dead, broadcasts player death event
 void AFIT2097Week3Character::DecreaseHealth()
 {
 	//PlayerHealth--;
 
-	PlayerHealth -= 10;
+	PlayerHealth -= 5;
 	
 	if(PlayerHealth <= 0)
 	{
 		PlayerDeath.Broadcast();
 	}
 }
+
+//Checks if the player is immune, if immune, create a timer to then reset immunity, else, decrease health
+//and make player immune, done to make sure that player does not die immediately
+void AFIT2097Week3Character::TakeDamage()
+{
+	//If isImmune, create a timer to then reset immunity
+	if(isImmune)
+	{
+		GetWorldTimerManager().SetTimer(ImmuneTimer, this, &AFIT2097Week3Character::ImmuneReset, 2.f, false);
+		return;
+	}
+	//else, decrease health and make player immune
+	else
+	{
+		DecreaseHealth();
+		isImmune = true;
+	}
+}
+
+void AFIT2097Week3Character::ImmuneReset()
+{
+	isImmune = false;
+}
+
 
 
 //Changes SetPause bool value and broadcasts it to GameMode, the changing bool value is how we unpause.

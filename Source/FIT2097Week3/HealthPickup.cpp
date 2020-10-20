@@ -20,6 +20,18 @@ void AHealthPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
+	Material = BaseMesh->GetMaterial(0);
+	matInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
+
+
+	//Sets the material to red to signify health pickup and pulse faster, almost blinking to better distinguish between pickups
+	if (matInstance)
+	{
+		matInstance->SetVectorParameterValue("Color", FLinearColor(1, 0, 0));
+		matInstance->SetScalarParameterValue("Intensity", 50.f);
+		matInstance->SetScalarParameterValue("Frequency", 1.0f);
+	}
 }
 
 // Called every frame

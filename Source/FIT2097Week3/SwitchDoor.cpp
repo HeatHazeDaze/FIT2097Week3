@@ -17,7 +17,10 @@ ASwitchDoor::ASwitchDoor()
 void ASwitchDoor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
+	Material = BaseMesh->GetMaterial(0);
+	matInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
 }
 
 // Called every frame
@@ -33,6 +36,12 @@ void ASwitchDoor::Interact_Implementation()
 	//Broadcasts the Remote Open event to all listeners
 	RemoteOpen.Broadcast();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Door has been opened"));
+
+	//Sets material to green and glow to signify opened
+	if (matInstance)
+	{
+		matInstance->SetVectorParameterValue("Color", FLinearColor(0, 1, 0));
+	}
 }
 
 //Called when interacted on, displays information

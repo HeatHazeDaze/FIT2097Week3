@@ -19,7 +19,18 @@ AKeyPickup::AKeyPickup()
 void AKeyPickup::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
+	Material = BaseMesh->GetMaterial(0);
+	matInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
+
+	//Sets the material to green color to signify key, sets to pulse less frequently than a healthpickup for differentiation
+	if (matInstance)
+	{
+		matInstance->SetVectorParameterValue("Color", FLinearColor(0, 1, 0));
+		matInstance->SetScalarParameterValue("Intensity", 50.f);
+		matInstance->SetScalarParameterValue("Frequency", 0.5f);
+	}
 }
 
 // Called every frame

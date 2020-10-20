@@ -18,6 +18,9 @@ void AAutoDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
+	Material = BaseMesh->GetMaterial(0);
+	matInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
 }
 
 // Called every frame
@@ -46,5 +49,12 @@ void AAutoDoor::RemoteOpen()
 	FVector target = BaseMesh->GetComponentLocation();
 	target.Z = baseZ + 330.0f;
 	BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
-	
+
+
+	//Sets material to green and glow to signify opened
+	if (matInstance)
+	{
+		matInstance->SetVectorParameterValue("Color", FLinearColor(0, 1, 0));
+		matInstance->SetScalarParameterValue("Emission", 50.0f);
+	}
 }

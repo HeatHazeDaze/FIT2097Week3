@@ -42,5 +42,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 		FGiveKeyEvent KeyGiveKey;
 
-	
+	//Dynamic Material setup
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* Material;
+
+	UMaterialInstanceDynamic* matInstance;
 };

@@ -44,5 +44,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact")
 		void DisplayInformation();
 	virtual void DisplayInformation_Implementation() override;
+
+	//Dynamic Material setup
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* Material;
+
+	UMaterialInstanceDynamic* matInstance;
 	
 };

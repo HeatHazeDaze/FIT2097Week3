@@ -1,0 +1,25 @@
+Repository Link:
+Demonstration Video Link: 
+
+
+How to play the game:
+
+WASD movement, with mouse one (left click) to interact. Find the key to open the first door and find the switch to remotely open the next door.
+The new area has a binary switch to your left with instructions on how to use it, proceed to the room that opens after inputting the right code and you'll find the
+fuse switch. The fuse switch is not active however so look behind you and you'll find an interactable door. INteract with the door to open it to find the fuse box.
+You'll find out that you need to find fix it by finding a fuse. you'll see the fuse outside being patrolled be an enemy. Sneak and steal it, fix the fuse box,
+interact with the fuse switch and you'll open the end node. Collide with it to win.
+
+
+What works: 
+- Fuse to a powered door
+- Simple Binary Code
+- Dynamic Materials setup
+	-Controlled from code
+- Doors glow when they are unlocked
+- Pickups use an animated material (pulse)
+- Switches use material to indicate on and off states
+- EnemyAI behaves as expected
+- Patrolling enemy always returns to patrol the fuse (hardcoded)
+- Seeker randomly wanders and chases the player if they see them
+

@@ -108,13 +108,34 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	int PlayerHealth;
 
+	//Variable to signify if player has fuse, to be modified with fuse pickups, will be a UPROPERTY
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	bool hasFuse;
+
+	//bool to allow player to become immune momentarily, done so the player does not immediately die
+	bool isImmune;
+
+	//FTimerHandle to allow for immunity period
+	FTimerHandle ImmuneTimer;
+
+	//Resets isImmune once immunity period ends
+	void ImmuneReset();
+	
 	// UFUNCTION call by the GameMode to decrease health every 2 seconds.
 	UFUNCTION()
 		void DecreaseHealth();
+
+	// UFUNCTION call when character collides with an enemy.
+	UFUNCTION()
+		void TakeDamage();
 	
 	// Function bound to event listener, is called when HealthPickup broadcasts 
 	UFUNCTION()
 		void HealPlayer(int health);
+
+	//Function bound to event listener, is called when FusePickup broadcasts
+	UFUNCTION()
+		void GivePlayerFuse();
 
 	//UPROPERTY used to pass to gamemode's pause game function. Player still gives input when paused,
 	//every OnPause function call would give a different bool value

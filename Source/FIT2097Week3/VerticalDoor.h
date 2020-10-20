@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Interactable.h"
 #include "KeyPickup.h"
+#include "Components/StaticMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "VerticalDoor.generated.h"
 
@@ -49,4 +50,10 @@ public:
 	//Give Key function, tied to event listener for GiveKey event broadcast from key pickup
 	UFUNCTION()
 		void GiveKey();
+
+	//Dynamic Material setup
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* Material;
+
+	UMaterialInstanceDynamic* matInstance;
 };

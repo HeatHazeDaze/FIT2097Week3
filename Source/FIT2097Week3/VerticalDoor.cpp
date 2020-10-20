@@ -22,6 +22,11 @@ void AVerticalDoor::BeginPlay()
 	{
 		KeyPickup->KeyGiveKey.AddDynamic(this, &AVerticalDoor::GiveKey);
 	}
+
+	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
+	Material = BaseMesh->GetMaterial(0);
+	matInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
+	
 }
 
 // Called every frame
@@ -34,6 +39,13 @@ void AVerticalDoor::Tick(float DeltaTime)
 		FVector target = BaseMesh->GetComponentLocation();
 		target.Z = baseZ + 330.0f;
 		BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
+
+		//Sets the material to green to signify opened
+		if(matInstance)
+		{
+			matInstance->SetVectorParameterValue("Color", FLinearColor(0, 1, 0));
+			//matInstance->SetScalarParameterValue("Emission", 50.f);
+		}
 	}
 	//Else, simualtes a closing door by moving downwards
 	else
@@ -41,6 +53,13 @@ void AVerticalDoor::Tick(float DeltaTime)
 		FVector target = BaseMesh->GetComponentLocation();
 		target.Z = baseZ;
 		BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
+
+		//Sets material to red to signify closed
+		if (matInstance)
+		{
+			matInstance->SetVectorParameterValue("Color", FLinearColor(1, 0, 0));
+			//matInstance->SetScalarParameterValue("Emission", 1.0f);
+		}
 	}
 }
 
@@ -48,6 +67,7 @@ void AVerticalDoor::Tick(float DeltaTime)
 void AVerticalDoor::Interact_Implementation()
 {
 	open = !open;
+
 }
 
 //Displays information when interacted upon
@@ -61,5 +81,11 @@ void AVerticalDoor::DisplayInformation_Implementation()
 void AVerticalDoor::GiveKey()
 {
 	hasKey = !hasKey;
+
+	//Sets material to glow to signify interactable now
+	if (matInstance)
+	{
+		matInstance->SetScalarParameterValue("Emission", 50.0f);
+	}
 }
 
