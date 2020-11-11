@@ -20,6 +20,12 @@ void AFuseSwitch::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//binds event if fusebox pointer is not null, calls Place fuse function
+	if (FuseBox != nullptr)
+	{
+		FuseBox->PlaceFuse.AddDynamic(this, &AFuseSwitch::PlaceFuse);
+	}
+	
 	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
 	Material = BaseMesh->GetMaterial(0);
 	matInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
@@ -30,11 +36,7 @@ void AFuseSwitch::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//binds event if fusebox pointer is not null, calls Place fuse function
-	if (FuseBox != nullptr)
-	{
-		FuseBox->PlaceFuse.AddDynamic(this, &AFuseSwitch::PlaceFuse);
-	}
+
 }
 
 //Interaction implementation, called when interacted upon, sets open bool to the inverse value

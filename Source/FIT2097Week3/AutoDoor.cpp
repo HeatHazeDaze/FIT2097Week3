@@ -11,12 +11,20 @@ AAutoDoor::AAutoDoor()
 
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
 	RootComponent = BaseMesh;
+
+	isActivated = false;
 }
 
 // Called when the game starts or when spawned
 void AAutoDoor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//binds event if DoorSwitch pointer is not null, calls RemoteOpen function
+	if (DoorSwitch != nullptr)
+	{
+		DoorSwitch->RemoteOpen.AddDynamic(this, &AAutoDoor::RemoteOpen);
+	}
 	
 	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
 	Material = BaseMesh->GetMaterial(0);
@@ -28,11 +36,20 @@ void AAutoDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//binds event if DoorSwitch pointer is not null, calls RemoteOpen function
-	if (DoorSwitch != nullptr)
+	if (isActivated)
 	{
-		DoorSwitch->RemoteOpen.AddDynamic(this, &AAutoDoor::RemoteOpen);
+		FVector target = BaseMesh->GetComponentLocation();
+		target.Z = baseZ + 330.0f;
+		BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
+
+		//Sets the material to green to signify opened
+		if (matInstance)
+		{
+			matInstance->SetVectorParameterValue("Color", FLinearColor(0, 1, 0));
+			//matInstance->SetScalarParameterValue("Emission", 50.f);
+		}
 	}
+
 }
 
 //Displays information when interacted using debug message
@@ -45,10 +62,7 @@ void AAutoDoor::DisplayInformation_Implementation()
 //Remote Open function that is called when DoorSwitch broadcasts
 void AAutoDoor::RemoteOpen()
 {
-	//Code that moves mesh upwards, simulates a door opening
-	FVector target = BaseMesh->GetComponentLocation();
-	target.Z = baseZ + 330.0f;
-	BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
+
 
 
 	//Sets material to green and glow to signify opened
@@ -57,4 +71,7 @@ void AAutoDoor::RemoteOpen()
 		matInstance->SetVectorParameterValue("Color", FLinearColor(0, 1, 0));
 		matInstance->SetScalarParameterValue("Emission", 50.0f);
 	}
+
+	//Code that moves mesh upwards, simulates a door opening
+	isActivated = true;
 }

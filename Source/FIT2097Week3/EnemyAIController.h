@@ -8,6 +8,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "FIT2097Week3Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EnemyAIController.generated.h"
 
@@ -36,6 +37,15 @@ public:
 	//Loads preset coordinates for the patroller to navigate to
 	void GeneratePatrolPath();
 	
+	//Loads preset coordinates for the special enemy to navigate to th player
+	void FindPlayerLocation();
+
+	
+	//Player reference, exposed to blueprints so we direct link between the two objects,
+	//used to check for player's location
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+		AFIT2097Week3Character* PlayerRef;
+	
 	//Other method to senses updated
 	//UFUNCTION()
 		//void OnPawnDetected(const TArray<AActor*>& DetectedPawns);
@@ -45,15 +55,15 @@ public:
 
 	//Variables
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = AI);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI);
 	float SightRadius = 500.f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = AI);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI);
 	float SightAge = 3.f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = AI);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI);
 	float LoseSightRadius = SightRadius + 30.f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = AI);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI);
 	float FieldOfView = 45.f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = AI);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI);
 	UAISenseConfig_Sight* SightConfiguration;
 
 	UNavigationSystemV1* NavigationSystem;

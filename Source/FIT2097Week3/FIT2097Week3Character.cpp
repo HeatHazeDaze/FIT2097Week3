@@ -7,15 +7,20 @@
 #include "FIT2097Week3Projectile.h"
 #include "FusePickup.h"
 #include "Animation/AnimInstance.h"
+#include "Engine/PostProcessVolume.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "HealthPickup.h"
+#include "GrenadePickup.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Interactable.h"
+#include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
+#include "SpecialEnemyCharacter.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -33,6 +38,9 @@ AFIT2097Week3Character::AFIT2097Week3Character()
 
 	//Initialize isImmune to false
 	isImmune = false;
+
+	//Initialize Grenade value to 5
+	GrenadeCount = 5;
 	
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
 	TriggerCapsule->InitCapsuleSize(55.0f, 96.0f);
@@ -130,6 +138,12 @@ void AFIT2097Week3Character::BeginPlay()
 	//To allow resuming
 	PrimaryActorTick.bTickEvenWhenPaused = true;
 
+	//Sets damage volume to not unbound
+	if (DamagePostProcess != nullptr)
+	{
+		DamagePostProcess->bUnbound = 0;
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -167,6 +181,9 @@ void AFIT2097Week3Character::SetupPlayerInputComponent(class UInputComponent* Pl
 	// Bind Pause event
 	FInputActionBinding& toggle = InputComponent->BindAction("Pause", IE_Pressed, this, &AFIT2097Week3Character::OnPause);
 	toggle.bExecuteWhenPaused = true; //EVEN THOUGH THE GAME IS PAUSED, CATCH THIS EVENT !!!!
+
+	// Bind throw grenade event
+	PlayerInputComponent->BindAction("Grenade", IE_Pressed, this, &AFIT2097Week3Character::OnGrenade);
 }
 
 void AFIT2097Week3Character::OnFire()
@@ -354,13 +371,28 @@ void AFIT2097Week3Character::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Player now has fuse"));
 		}
 
-		//If OtherActor is an enemy, binds the take damage function to the give player fuse event dispatch
+		//If OtherActor is an enemy, binds the take damage function to the takedamage event dispatch
 		AEnemyCharacter* enemy = Cast<AEnemyCharacter>(OtherActor);
 		if (enemy)
 		{
 			enemy->DamageEvent.AddDynamic(this, &AFIT2097Week3Character::TakeDamage);
 		}
-		
+
+		//If OtherActor is a Grenade Pickup, binds the GiveGrenade function to the give grenade dispatch
+		AGrenadePickup* grenade = Cast<AGrenadePickup>(OtherActor);
+		if (grenade)
+		{
+			grenade->GiveGrenade.AddDynamic(this, &AFIT2097Week3Character::GiveGrenade);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Grenade Collected"));
+		}
+
+		//If OtherActor is a Special Enemy, binds the kill player function to the kill player event dispatch
+		ASpecialEnemyCharacter* special = Cast<ASpecialEnemyCharacter>(OtherActor);
+		if (special)
+		{
+			special->KillPlayerEvent.AddDynamic(this, &AFIT2097Week3Character::KillPlayer);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Player was killed by special enemy"));
+		}
 		//Calls execute interact from any objects implementing the interactable interface
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
 		
@@ -548,6 +580,96 @@ void AFIT2097Week3Character::GivePlayerFuse()
 	hasFuse = !hasFuse;
 }
 
+void AFIT2097Week3Character::GiveGrenade()
+{
+	GrenadeCount++;
+}
+
+void AFIT2097Week3Character::FootstepEvent_Implementation()
+{
+
+	// What Actors do we want our trace to Ignore?
+	//TArray<AActor*> ActorsToIgnore;
+
+
+	//ActorsToIgnore.Add(this);
+	const FVector Offset(0.0f, 0.0f, 100.0f);
+	FHitResult HitOut;
+	ECollisionChannel CollisionChannel = ECC_Pawn;
+	bool ReturnPhysMat = true;
+
+	// Set up our TraceParams object
+	FCollisionQueryParams TraceParams;
+
+	// Should we simple or complex collision?
+	TraceParams.bTraceComplex = true;
+
+	// We need Physics materials 
+	TraceParams.bReturnPhysicalMaterial = ReturnPhysMat;
+
+	//Ignore the player character - so you don't hit yourself!
+	TraceParams.AddIgnoredActor(this);
+
+
+
+	// When we're debugging it is really useful to see where our trace is in the world
+	// We can use World->DebugDrawTraceTag to tell Unreal to draw debug lines for our trace
+	// (remove these lines to remove the debug - or better create a debug switch!)
+	const FName TraceTag("MyTraceTag");
+	GetWorld()->DebugDrawTraceTag = TraceTag;
+	TraceParams.TraceTag = TraceTag;
+
+
+	// Force clear the HitData which contains our results
+	HitOut = FHitResult(ForceInit);
+
+	// Perform our trace
+	bool bIsHit = GetWorld()->LineTraceSingleByChannel
+	(
+		HitOut,		//result
+		GetActorLocation(),	//start
+		GetActorLocation() - Offset, //end
+		CollisionChannel, //collision channel
+		TraceParams
+	);
+
+	//Checks if a hit is detected
+	if (bIsHit)
+	{
+		//Stores a reference to object's material
+		UPhysicalMaterial* PhysicsMtl = HitOut.PhysMaterial.Get();
+
+		//Checks if surface is default, if yes, play concrete sound cue
+		if (PhysicsMtl->SurfaceType == SurfaceType_Default)
+		{
+			// try and play the sound if specified
+			if (FootstepConcreteSoundCue != NULL)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, FootstepConcreteSoundCue, GetActorLocation());
+			}
+		}
+		//Checks if surface is default, if yes, play concrete sound cue
+		if (PhysicsMtl->SurfaceType == SurfaceType1)
+		{
+			// try and play the sound if specified
+			if (FootstepConcreteSoundCue != NULL)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, FootstepConcreteSoundCue, GetActorLocation());
+			}
+		}
+		//Checks if surface is default, if yes, play carpet sound cue
+		if (PhysicsMtl->SurfaceType == SurfaceType2)
+		{
+			// try and play the sound if specified
+			if (FootstepCarpetSoundCue != NULL)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, FootstepCarpetSoundCue, GetActorLocation());
+			}
+		}
+
+	}
+}
+
 //Decreases the player's health, is called from gamemode every two seconds.
 //Includes check for if the player is dead, broadcasts player death event
 void AFIT2097Week3Character::DecreaseHealth()
@@ -577,21 +699,91 @@ void AFIT2097Week3Character::TakeDamage()
 	{
 		DecreaseHealth();
 		isImmune = true;
+
+		DamagePostProcess->bUnbound = 1;
 	}
+}
+
+void AFIT2097Week3Character::KillPlayer()
+{
+	PlayerDeath.Broadcast();
 }
 
 void AFIT2097Week3Character::ImmuneReset()
 {
 	isImmune = false;
+
+	DamagePostProcess->bUnbound = 0;
 }
 
+/*void AFIT2097Week3Character::DamageScreenReset()
+{
+	DamagePost
+}*/
 
 
 //Changes SetPause bool value and broadcasts it to GameMode, the changing bool value is how we unpause.
 void AFIT2097Week3Character::OnPause()
 {
-	SetPause = !SetPause;
+	bSetPause = !bSetPause;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Player pressed p"));
-	PlayerPause.Broadcast(SetPause);
+	PlayerPause.Broadcast(bSetPause);
 
 }
+
+
+// Fires a grenade, recycle projectile firing code from OnFire
+void AFIT2097Week3Character::OnGrenade()
+{
+	//If we have grenades, fire it off
+	if (GrenadeCount > 0)
+	{
+		// try and fire a projectile
+		if (ProjectileClass != NULL)
+		{
+			UWorld* const World = GetWorld();
+			if (World != NULL)
+			{
+				if (bUsingMotionControllers)
+				{
+					const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
+					const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
+					World->SpawnActor<AFIT2097Week3Projectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+				}
+				else
+				{
+					const FRotator SpawnRotation = GetControlRotation();
+					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+					const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+
+					//Set Spawn Collision Handling Override
+					FActorSpawnParameters ActorSpawnParams;
+					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+					// spawn the projectile at the muzzle
+					World->SpawnActor<AFIT2097Week3Projectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				}
+			}
+		}
+
+		// try and play the sound if specified
+		if (FireSound != NULL)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		}
+
+		// try and play a firing animation if specified
+		if (FireAnimation != NULL)
+		{
+			// Get the animation object for the arms mesh
+			UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+			if (AnimInstance != NULL)
+			{
+				AnimInstance->Montage_Play(FireAnimation, 1.f);
+			}
+		}
+
+		GrenadeCount--;
+	}
+}
+

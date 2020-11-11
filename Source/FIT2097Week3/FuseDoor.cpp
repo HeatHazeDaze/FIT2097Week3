@@ -11,12 +11,20 @@ AFuseDoor::AFuseDoor()
 
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
 	RootComponent = BaseMesh;
+
+	isActivated = false;
 }
 
 // Called when the game starts or when spawned
 void AFuseDoor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//binds event if DoorSwitch pointer is not null, calls RemoteOpen function
+	if (FuseSwitch != nullptr)
+	{
+		FuseSwitch->FuseOpen.AddDynamic(this, &AFuseDoor::FuseOpen);
+	}
 
 	//Dynamic material setup, using BaseMesh because GetMesh() doesn't exist without skeletons
 	Material = BaseMesh->GetMaterial(0);
@@ -28,10 +36,12 @@ void AFuseDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//binds event if DoorSwitch pointer is not null, calls RemoteOpen function
-	if (FuseSwitch != nullptr)
+	if (isActivated)
 	{
-		FuseSwitch->FuseOpen.AddDynamic(this, &AFuseDoor::FuseOpen);
+		//Code that moves mesh upwards, simulates a door opening
+		FVector target = BaseMesh->GetComponentLocation();
+		target.Z = baseZ + 330.0f;
+		BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
 	}
 }
 
@@ -46,9 +56,7 @@ void AFuseDoor::DisplayInformation_Implementation()
 void AFuseDoor::FuseOpen()
 {
 	//Code that moves mesh upwards, simulates a door opening
-	FVector target = BaseMesh->GetComponentLocation();
-	target.Z = baseZ + 330.0f;
-	BaseMesh->SetRelativeLocation(FMath::Lerp(BaseMesh->GetComponentLocation(), target, 0.05f));
+	isActivated = true;
 
 
 	//Sets material to green and glow to signify opened

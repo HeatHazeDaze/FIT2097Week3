@@ -10,6 +10,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBinaryCode1Event, bool, code);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBinaryCode2Event, bool, code);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBinaryCode3Event, bool, code);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBinaryCode4Event, bool, code);
 
 UCLASS()
 class FIT2097WEEK3_API ABinarySwitch : public AActor, public IInteractable
@@ -60,6 +61,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 		FBinaryCode3Event BinaryCode3;
 
+	//Event Dispatcher to call on the corresponding binary code function in listeners.
+	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
+		FBinaryCode4Event BinaryCode4;
+	
 	//Dynamic Material setup
 	UPROPERTY(EditAnywhere)
 		UMaterialInterface* Material;

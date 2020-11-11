@@ -67,6 +67,8 @@ void ABinarySwitch::Interact_Implementation()
 	case 3:
 		BinaryCode3.Broadcast(currentCode);
 		break;
+	case 4:
+		BinaryCode4.Broadcast(currentCode);
 	default:
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Please set up this switch"));
 		break;

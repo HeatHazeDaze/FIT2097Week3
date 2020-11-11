@@ -26,6 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 		AFuseSwitch* FuseSwitch;
 
+	bool isActivated;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

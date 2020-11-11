@@ -39,6 +39,35 @@ public:
 		void DisplayInformation();
 	virtual void DisplayInformation_Implementation() override;
 
+	//blueprint exposed variable to set the default speed of enemies
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		float MovementSpeed;
+
+	/** Footstep concrete sounds*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundCue* EnemyFootstepConcreteSoundCue;
+
+	/** Footstep carpet sounds*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundCue* EnemyFootstepCarpetSoundCue;
+
+
+	//Function bound to animBP footstep event, is called when anim notify event occurs
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Gameplay)
+		void EnemyFootstepEvent();
+
+	//bool to check if corresponding enemy character is stunned
+	bool isStunned;
+
+
+	//stun function, sets movement speed to 0
+	void EnemyStun();
+
+	//reset stun function
+	void ResetStun();
+
+	FTimerHandle StunTimer;
+	
 	//Event Dispatcher to call on the take damage function in listeners.
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 		FTakeDamageEvent DamageEvent;

@@ -3,6 +3,8 @@
 
 #include "EnemyAIController.h"
 
+#include "Kismet/GameplayStatics.h"
+
 
 AEnemyAIController::AEnemyAIController()
 {
@@ -38,6 +40,8 @@ AEnemyAIController::AEnemyAIController()
 	PatrollerWaypoints.Add(Waypoint4);
 
 	PatrolCount = 0;
+
+	PlayerRef = Cast<AFIT2097Week3Character>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 }
 
 void AEnemyAIController::BeginPlay()
@@ -137,6 +141,7 @@ void AEnemyAIController::GeneratePatrolPath()
 
 void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
+	/*
 	UE_LOG(LogTemp, Warning, TEXT("Reached Location"));
 
 	if (NavigationSystem)
@@ -145,6 +150,7 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 		NavigationSystem->GetRandomPointInNavigableRadius(GetPawn()->GetActorLocation(), 2000, returnLocation);
 		MoveToLocation(returnLocation.Location);
 	}
+	*/
 }
 
 
@@ -167,3 +173,15 @@ void AEnemyAIController::OnSensesUpdated(AActor* UpdatedActor, FAIStimulus Stimu
 		}
 	}
 }
+
+
+//Deperecated function, does not work
+//Function to find player's location so that the ai can always try to get to the player (Mr. X from RE2)
+/*void AEnemyAIController::FindPlayerLocation()
+{
+	if(!PlayerRef)
+	{
+		BlackboardComponent->SetValueAsVector("PlayerPosition", PlayerRef->GetActorLocation());
+	}
+
+}*/

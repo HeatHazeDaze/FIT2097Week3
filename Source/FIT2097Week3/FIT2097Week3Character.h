@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Engine/PostProcessVolume.h"
 #include "Components/CapsuleComponent.h"
 #include "FIT2097Week3Character.generated.h"
 
 class UInputComponent;
 //Event Dispatchers
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDeathEvent);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerPauseEvent, bool, setPause);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerPauseEvent, bool, bSetPause);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerWinEvent);
 
 UCLASS(config=Game)
@@ -115,11 +116,18 @@ public:
 	//bool to allow player to become immune momentarily, done so the player does not immediately die
 	bool isImmune;
 
+	/** Damage Post Process Material */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	class APostProcessVolume* DamagePostProcess;
+
 	//FTimerHandle to allow for immunity period
 	FTimerHandle ImmuneTimer;
 
-	//Resets isImmune once immunity period ends
+	//Resets isImmune once immunity period ends, also resets damage screen to not unbound stopping the damage screen post processing
 	void ImmuneReset();
+
+	//Resets DamageScreen to not unbound, stopping the damage screen post processing
+	//void DamageScreenReset();
 	
 	// UFUNCTION call by the GameMode to decrease health every 2 seconds.
 	UFUNCTION()
@@ -128,6 +136,10 @@ public:
 	// UFUNCTION call when character collides with an enemy.
 	UFUNCTION()
 		void TakeDamage();
+
+	// UFUNCTION call when character collides with a special enemy.
+	UFUNCTION()
+		void KillPlayer();
 	
 	// Function bound to event listener, is called when HealthPickup broadcasts 
 	UFUNCTION()
@@ -136,12 +148,27 @@ public:
 	//Function bound to event listener, is called when FusePickup broadcasts
 	UFUNCTION()
 		void GivePlayerFuse();
+	
+	//Function bound to event listener, is called when GrenadePickup broadcasts
+	UFUNCTION()
+		void GiveGrenade();
+
+	//Function bound to animBP footstep event, is called when anim notify event occurs
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Gameplay)
+		void FootstepEvent();
 
 	//UPROPERTY used to pass to gamemode's pause game function. Player still gives input when paused,
 	//every OnPause function call would give a different bool value
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		bool SetPause = false;
+		bool bSetPause = false;
 
+	/** Footstep concrete sounds*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundCue* FootstepConcreteSoundCue;
+
+	/** Footstep carpet sounds*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundCue* FootstepCarpetSoundCue;
 	
 	//Event Dispatcher to call on the remote open function in listeners. Responsible for death
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
@@ -153,13 +180,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 		FPlayerWinEvent PlayerWin;
 
+	//Fires a grenade
+	void OnGrenade();
 
-
+	//Int variable, stores how much grenades the player has
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	int GrenadeCount;
 	
 
 protected:
 	
-	/** Fires a projectile. */
+	/** Conducts linetrace, main interaction method. */
 	void OnFire();
 
 	// Pauses the game custom function

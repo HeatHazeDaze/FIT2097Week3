@@ -50,6 +50,8 @@ void AFuseBox::Interact_Implementation()
 		}
 
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Fuse bos is now active"));
+
+		PlayerRef->hasFuse = false;
 	}
 
 }

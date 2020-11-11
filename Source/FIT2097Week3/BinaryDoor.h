@@ -46,6 +46,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 		bool tempCode3;
 
+	bool isActivated;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -1,0 +1,27 @@
+Repository Link: https://github.com/HeatHazeDaze/FIT2097Week3
+Demonstration Video Link: https://youtu.be/pfu48WBrtpc & https://youtu.be/8EuQORDaRr8 (Code Update)
+
+
+How to play the game:
+
+WASD movement, with mouse one (left click) to interact. Find the key to open the first door and find the switch to remotely open the next door.
+The new area has a binary switch to your left with instructions on how to use it, proceed to the room that opens after inputting the right code and you'll find the
+fuse switch. The fuse switch is not active however so look behind you and you'll find an interactable door. INteract with the door to open it to find the fuse box.
+You'll find out that you need to find fix it by finding a fuse. you'll see the fuse outside being patrolled be an enemy. Sneak and steal it, fix the fuse box,
+interact with the fuse switch and you'll open the next room. There there's a 4 switches to activate and a fuse to activate the fuse box. Be careful, however, as there is
+a special enemy type that can instant kill you
+
+
+What works: 
+- New Puzzle (FinalDoor and combination of new AI)
+- Grenade Functionality
+- Enemy Stunning
+- Post processing effects
+- Damage post processing effects 
+- Dynamic footstep switching
+- Special enemy character (see docs as to how they are special)
+- Opening cinematic
+
+What's buggy:
+-Enemy collision causes massive stutters, however, as shown in video demo, game continues to play after without a hitch. Unknown as to the reason behind it
+

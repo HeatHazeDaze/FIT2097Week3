@@ -26,7 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 		ASwitchDoor* DoorSwitch;
 
-	
+	bool isActivated;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
